@@ -9,6 +9,9 @@
 <title>Insert title here</title>
 </head>
 <body>
+	<ul>
+  		<li><a href="search.html">Search</a></li>
+	</ul>
    <table align="center" >
 	    <tr>
 	        <td>Search:</td>	        
