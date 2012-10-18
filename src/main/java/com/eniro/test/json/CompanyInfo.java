@@ -1,7 +1,6 @@
 
 package com.eniro.test.json;
 
-import java.util.List;
 
 public class CompanyInfo{
    	private String companyName;

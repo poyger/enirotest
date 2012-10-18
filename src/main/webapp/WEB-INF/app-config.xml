@@ -47,6 +47,7 @@
 		<property name="sessionFactory" ref="sessionFactory" />
 	</bean>
 	
+	<!-- ExecutorService for doing simultaneously call to eniro api -->
      <bean id="executorService" class="java.util.concurrent.Executors"
           factory-method="newCachedThreadPool" scope="singleton">
     </bean>	

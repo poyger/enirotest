@@ -11,6 +11,7 @@ import com.google.gson.Gson;
 
 public class InvokeEniroAPICallable implements Callable<Result> {
 
+	@SuppressWarnings("unused")
 	private final static Logger LOGGER = Logger
 			.getLogger(InvokeEniroAPICallable.class.getName());
 

@@ -27,13 +27,14 @@ public class HibernateSearchManager implements SearchManager {
 		this.sessionFactory = sessionFactory;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Transactional
 	public List<Search> getAllSearches() {
 		return getCurrentSession().createQuery("from Search").list();
 	}
 
 	/**
-	 * Returns the session associated with the ongoing reward transaction.
+	 * Returns the session associated with the ongoing search transaction.
 	 * @return the transactional session
 	 */
 	protected Session getCurrentSession() {
