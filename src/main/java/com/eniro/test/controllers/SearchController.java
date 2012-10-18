@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -29,10 +28,12 @@ public class SearchController {
 			.getLogger(SearchController.class.getName());
 
 	private SearchManager searchManager;
+	private ExecutorService executorService;
 
 	@Autowired
-	public SearchController(SearchManager searchManager) {
+	public SearchController(SearchManager searchManager, ExecutorService executorService) {
 		this.searchManager = searchManager;
+        this.executorService = executorService;
 	}
 
 	@RequestMapping(value = "/search", method = RequestMethod.GET)
@@ -52,11 +53,10 @@ public class SearchController {
 		searchManager.update(search);		
 		String[] searchWordArray  = search.getSearchValue().split(",");
 		
-		ExecutorService executor = Executors.newCachedThreadPool();
 		List<Future<Result>> list = new ArrayList<Future<Result>>();
 		for (int i = 0; i < searchWordArray.length; i++) {
 			Callable<Result> worker = new InvokeEniroAPICallable(searchWordArray[i]);
-			Future<Result> submit = executor.submit(worker);
+			Future<Result> submit = executorService.submit(worker);
 			list.add(submit);
 		}
 		ArrayList<Result> resultList = new ArrayList<Result>();
@@ -71,7 +71,7 @@ public class SearchController {
 				e.printStackTrace();
 			}
 		}
-		executor.shutdown();
+		executorService.shutdown();
 		model.addAttribute(resultList.get(1));
 	}
 }
