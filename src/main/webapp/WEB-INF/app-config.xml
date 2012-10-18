@@ -48,7 +48,7 @@
 	</bean>
 	
      <bean id="executorService" class="java.util.concurrent.Executors"
-          factory-method="newCachedThreadPool">
+          factory-method="newCachedThreadPool" scope="singleton">
     </bean>	
     
     <task:annotation-driven executor="executorService" />

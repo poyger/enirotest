@@ -8,6 +8,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -29,7 +31,7 @@ public class SearchController {
 
 	private SearchManager searchManager;
 	private ExecutorService executorService;
-
+	
 	@Autowired
 	public SearchController(SearchManager searchManager, ExecutorService executorService) {
 		this.searchManager = searchManager;
@@ -51,16 +53,16 @@ public class SearchController {
 		LOGGER.log(Level.INFO, "Search Filter: " + search.getFilterValue());
 
 		searchManager.update(search);		
-		String[] searchWordArray  = search.getSearchValue().split(",");
+		final String[] searchWordArray  = search.getSearchValue().split(",");
 		
-		List<Future<Result>> list = new ArrayList<Future<Result>>();
+		final List<Future<Result>> list = new ArrayList<Future<Result>>();
 		for (int i = 0; i < searchWordArray.length; i++) {
 			Callable<Result> worker = new InvokeEniroAPICallable(searchWordArray[i]);
 			Future<Result> submit = executorService.submit(worker);
 			list.add(submit);
 		}
-		ArrayList<Result> resultList = new ArrayList<Result>();
 		// Now retrieve the result
+		ArrayList<Result> resultList = new ArrayList<Result>();
 		for (Future<Result> future : list) {
 			try {
 				resultList.add(future.get());	
@@ -70,6 +72,29 @@ public class SearchController {
 				e.printStackTrace();
 			}
 		}
+		// Do Filtering on the result list
+		if(search.getFilterValue() != null && !search.getFilterValue().equals(""))
+		resultList = filter(resultList, search.getFilterValue());	
+		
 		model.addAttribute("resultList",resultList);
 	}
+	
+	private ArrayList<Result> filter(final ArrayList<Result> resultList, final String filterValue){
+		final Pattern pattern = Pattern.compile(filterValue , Pattern.CASE_INSENSITIVE);
+		if(resultList != null){
+			int filter_count = 0;
+			for(Result result : resultList){
+				for(int i = 0; i < result.getAdverts().size(); i++){
+				    Matcher matcher = pattern.matcher(result.getAdverts().get(i).toString());				    
+				    if(matcher.matches()){
+				    	result.getAdverts().remove(i);				    	
+				    	filter_count++;
+				    }
+				}	
+			}		
+			LOGGER.log(Level.INFO, "Filter count: " + filter_count);
+		}
+		
+		return resultList;		
+	}	
 }
