@@ -60,7 +60,6 @@ public class SearchController {
 			list.add(submit);
 		}
 		ArrayList<Result> resultList = new ArrayList<Result>();
-		System.out.println(list.size());
 		// Now retrieve the result
 		for (Future<Result> future : list) {
 			try {
@@ -71,7 +70,6 @@ public class SearchController {
 				e.printStackTrace();
 			}
 		}
-		executorService.shutdown();
-		model.addAttribute(resultList.get(1));
+		model.addAttribute("resultList",resultList);
 	}
 }
