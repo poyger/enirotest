@@ -53,5 +53,9 @@
     </bean>	
     
     <task:annotation-driven executor="executorService" />
+    
+    <bean id="invokeAsynch" class="com.eniro.test.backend.InvokeEniroAPIAsynch" scope="singleton">
+    </bean>	
+    
 
 </beans>

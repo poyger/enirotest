@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
+import com.eniro.test.backend.InvokeEniroAPIAsynch;
 import com.eniro.test.backend.InvokeEniroAPICallable;
 import com.eniro.test.json.Result;
 import com.eniro.test.model.Search;
@@ -31,11 +32,14 @@ public class SearchController {
 
 	private SearchManager searchManager;
 	private ExecutorService executorService;
-	
+	private InvokeEniroAPIAsynch invokeAsynch;
+
 	@Autowired
-	public SearchController(SearchManager searchManager, ExecutorService executorService) {
+	public SearchController(SearchManager searchManager,
+			InvokeEniroAPIAsynch invokeAsynch, ExecutorService executorService) {
 		this.searchManager = searchManager;
-        this.executorService = executorService;
+		this.invokeAsynch = invokeAsynch;
+		this.executorService = executorService;
 	}
 
 	@RequestMapping(value = "/search", method = RequestMethod.GET)
@@ -53,14 +57,17 @@ public class SearchController {
 		LOGGER.log(Level.INFO, "Search Filter: " + search.getFilterValue());
 
 		searchManager.update(search);		
-		final String[] searchWordArray  = search.getSearchValue().split(",");
+		final String[] searchWordArray  = search.getSearchValue().split(",");				
+		long start = System.nanoTime();		
 		
-		final List<Future<Result>> list = new ArrayList<Future<Result>>();
-		for (int i = 0; i < searchWordArray.length; i++) {
-			Callable<Result> worker = new InvokeEniroAPICallable(searchWordArray[i]);
-			Future<Result> submit = executorService.submit(worker);
-			list.add(submit);
-		}
+		/**using @Asynch annotation**/
+		List<Future<Result>> list = callAsynch(searchWordArray);
+		/**using underlying ExecutorService implementation**/
+		//List<Future<Result>> list =	callCallable(searchWordArray);
+		
+		long time = System.nanoTime() - start;
+		LOGGER.log(Level.INFO, "Time calling backend : " + time);
+
 		// Now retrieve the result
 		ArrayList<Result> resultList = new ArrayList<Result>();
 		for (Future<Result> future : list) {
@@ -72,29 +79,55 @@ public class SearchController {
 				e.printStackTrace();
 			}
 		}
+			
 		// Do Filtering on the result list
 		if(search.getFilterValue() != null && !search.getFilterValue().equals(""))
 		resultList = filter(resultList, search.getFilterValue());	
 		
 		model.addAttribute("resultList",resultList);
 	}
-	
-	private ArrayList<Result> filter(final ArrayList<Result> resultList, final String filterValue){
-		final Pattern pattern = Pattern.compile(filterValue , Pattern.CASE_INSENSITIVE);
-		if(resultList != null){
+
+	private List<Future<Result>> callCallable(String[] searchWordArray) {
+		final List<Future<Result>> list = new ArrayList<Future<Result>>();
+		for (int i = 0; i < searchWordArray.length; i++) {
+			Callable<Result> worker = new InvokeEniroAPICallable(
+					searchWordArray[i]);
+			Future<Result> submit = executorService.submit(worker);
+			list.add(submit);
+		}
+		return list;
+
+	}
+
+	private List<Future<Result>> callAsynch(String[] searchWordArray)
+			throws Exception {
+		final List<Future<Result>> list = new ArrayList<Future<Result>>();
+		for (int i = 0; i < searchWordArray.length; i++) {
+			Future<Result> submit = invokeAsynch.call(searchWordArray[i]);
+			list.add(submit);
+		}
+		return list;
+	}
+
+	private ArrayList<Result> filter(final ArrayList<Result> resultList,
+			final String filterValue) {
+		final Pattern pattern = Pattern.compile(filterValue,
+				Pattern.CASE_INSENSITIVE);
+		if (resultList != null) {
 			int filter_count = 0;
-			for(Result result : resultList){
-				for(int i = 0; i < result.getAdverts().size(); i++){
-				    Matcher matcher = pattern.matcher(result.getAdverts().get(i).toString());				    
-				    if(matcher.matches()){
-				    	result.getAdverts().remove(i);				    	
-				    	filter_count++;
-				    }
-				}	
-			}		
+			for (Result result : resultList) {
+				for (int i = 0; i < result.getAdverts().size(); i++) {
+					Matcher matcher = pattern.matcher(result.getAdverts()
+							.get(i).toString());
+					if (matcher.matches()) {
+						result.getAdverts().remove(i);
+						filter_count++;
+					}
+				}
+			}
 			LOGGER.log(Level.INFO, "Filter count: " + filter_count);
 		}
-		
-		return resultList;		
-	}	
+
+		return resultList;
+	}
 }
