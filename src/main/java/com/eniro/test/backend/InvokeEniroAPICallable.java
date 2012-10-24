@@ -20,7 +20,7 @@ public class InvokeEniroAPICallable implements Callable<Result> {
 	private final static int CONNECTION_TIMEOUT = 5000;
 	private final static int READ_TIMEOUT = 10000;
 
-	private String searchWord;
+	private final String searchWord;
 
 	public InvokeEniroAPICallable(String searchWord) {
 		this.searchWord = searchWord;
@@ -28,8 +28,8 @@ public class InvokeEniroAPICallable implements Callable<Result> {
 
 	@Override
 	public Result call() throws Exception {
-		URL eniroApiUrl = new URL(ENDPOINT + searchWord);
-		HttpURLConnection eniroApiConn = (HttpURLConnection) eniroApiUrl
+		final URL eniroApiUrl = new URL(ENDPOINT + searchWord);
+		final HttpURLConnection eniroApiConn = (HttpURLConnection) eniroApiUrl
 				.openConnection();
 		if (eniroApiConn == null) {
 			throw new Exception(eniroApiConn + " is null");
@@ -37,13 +37,13 @@ public class InvokeEniroAPICallable implements Callable<Result> {
 		eniroApiConn.setConnectTimeout(CONNECTION_TIMEOUT);
 		eniroApiConn.setReadTimeout(READ_TIMEOUT);
 
-		int respCode = eniroApiConn.getResponseCode();
+		final int respCode = eniroApiConn.getResponseCode();
 
 		if (respCode != 200) {
 			throw new Exception("reponseCode " + respCode);
 		}
-		Gson gson = new Gson();
-		Result result = gson.fromJson(
+		final Gson gson = new Gson();
+		final Result result = gson.fromJson(
 				new InputStreamReader(eniroApiConn.getInputStream(), "UTF-8"),
 				Result.class);
 

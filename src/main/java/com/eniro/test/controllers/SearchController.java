@@ -30,13 +30,13 @@ public class SearchController {
 	private final static Logger LOGGER = Logger
 			.getLogger(SearchController.class.getName());
 
-	private SearchManager searchManager;
-	private ExecutorService executorService;
-	private InvokeEniroAPIAsynch invokeAsynch;
+	private final SearchManager searchManager;
+	private final ExecutorService executorService;
+	private final InvokeEniroAPIAsynch invokeAsynch;
 
 	@Autowired
-	public SearchController(SearchManager searchManager,
-			InvokeEniroAPIAsynch invokeAsynch, ExecutorService executorService) {
+	public SearchController(final SearchManager searchManager,
+			final InvokeEniroAPIAsynch invokeAsynch, final ExecutorService executorService) {
 		this.searchManager = searchManager;
 		this.invokeAsynch = invokeAsynch;
 		this.executorService = executorService;
@@ -62,15 +62,15 @@ public class SearchController {
 		long start = System.nanoTime();		
 		
 		/**using @Asynch annotation**/
-		List<Future<Result>> list = callAsynch(searchWordArray);
+		final List<Future<Result>> list = callAsynch(searchWordArray);
 		/**using underlying ExecutorService implementation**/
 		//List<Future<Result>> list =	callCallable(searchWordArray);
 		
-		long time = System.nanoTime() - start;
+		final long time = System.nanoTime() - start;
 		LOGGER.log(Level.INFO, "Time calling backend : " + time);
 
 		// Now retrieve the result
-		ArrayList<Result> resultList = new ArrayList<Result>();
+		final ArrayList<Result> resultList = new ArrayList<Result>();
 		for (Future<Result> future : list) {
 			try {
 				resultList.add(future.get());	
@@ -82,10 +82,13 @@ public class SearchController {
 		}
 			
 		// Do Filtering on the result list
-		if(search.getFilterValue() != null && !search.getFilterValue().equals(""))
-		resultList = filter(resultList, search.getFilterValue());	
-		
-		model.addAttribute("resultList",resultList);
+		if(search.getFilterValue() != null && !search.getFilterValue().equals("")){
+			final ArrayList<Result> filteredResultList = filter(resultList, search.getFilterValue());	
+			model.addAttribute("resultList",filteredResultList);		
+		}
+		else{		
+			model.addAttribute("resultList",resultList);
+		}	
 	}
 
 	private List<Future<Result>> callCallable(String[] searchWordArray) {
@@ -116,9 +119,9 @@ public class SearchController {
 				Pattern.CASE_INSENSITIVE);
 		if (resultList != null) {
 			int filter_count = 0;
-			for (Result result : resultList) {
+			for (final Result result : resultList) {
 				for (int i = 0; i < result.getAdverts().size(); i++) {
-					Matcher matcher = pattern.matcher(result.getAdverts()
+					final Matcher matcher = pattern.matcher(result.getAdverts()
 							.get(i).toString());
 					if (matcher.matches()) {
 						result.getAdverts().remove(i);

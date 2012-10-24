@@ -28,8 +28,8 @@ public class InvokeEniroAPIAsynch{
 
 	@Async
 	public Future<Result> call(String searchWord) throws Exception {
-		URL eniroApiUrl = new URL(ENDPOINT + searchWord);
-		HttpURLConnection eniroApiConn = (HttpURLConnection) eniroApiUrl
+		final URL eniroApiUrl = new URL(ENDPOINT + searchWord);
+		final HttpURLConnection eniroApiConn = (HttpURLConnection) eniroApiUrl
 				.openConnection();
 		if (eniroApiConn == null) {
 			throw new Exception(eniroApiConn + " is null");
@@ -37,13 +37,13 @@ public class InvokeEniroAPIAsynch{
 		eniroApiConn.setConnectTimeout(CONNECTION_TIMEOUT);
 		eniroApiConn.setReadTimeout(READ_TIMEOUT);
 
-		int respCode = eniroApiConn.getResponseCode();
+		final int respCode = eniroApiConn.getResponseCode();
 
 		if (respCode != 200) {
 			throw new Exception("reponseCode " + respCode);
 		}
-		Gson gson = new Gson();
-		Result result = gson.fromJson(
+		final Gson gson = new Gson();
+		final Result result = gson.fromJson(
 				new InputStreamReader(eniroApiConn.getInputStream(), "UTF-8"),
 				Result.class);
 
