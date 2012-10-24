@@ -43,11 +43,12 @@ public class SearchController {
 	}
 
 	@RequestMapping(value = "/search", method = RequestMethod.GET)
-	public void form(Model model) {
+	public String form(Model model) {
 		model.addAttribute(new Search());
 		LOGGER.log(Level.INFO,
 				"History Searches: " + searchManager.getAllSearches());
 		model.addAttribute("historySearches", searchManager.getAllSearches());
+		return "search";
 	}
 
 	@RequestMapping(value = "/result", method = RequestMethod.POST)
