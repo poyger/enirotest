@@ -47,7 +47,10 @@
 		<property name="sessionFactory" ref="sessionFactory" />
 	</bean>
 	
-	<!-- ExecutorService for doing simultaneously call to eniro api -->
+	<!-- ExecutorService for doing simultaneously call to eniro api 
+	     ok to use newCachedThreadPool in this program. Should be avoided in heavy loaded applications
+	     because it does not have an limit of thread creation, use newFixedThreadPool in that cases.	
+	-->
      <bean id="executorService" class="java.util.concurrent.Executors"
           factory-method="newCachedThreadPool" scope="singleton">
     </bean>	
